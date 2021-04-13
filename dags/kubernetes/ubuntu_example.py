@@ -72,7 +72,7 @@ with DAG(
             echo "My Airflow fernet key: $MY_AIRFLOW_FERNET_KEY" && \\
             eval "$($HOME/miniconda/bin/conda shell.bash hook)" && \\
             conda info --envs && \\
-            python3 $HOME/examples/src/main/python/preproc_shp.py bucket staging/preproc
+            python3 $HOME/examples/src/main/python/preproc.py bucket staging/preproc
         ''']
     )
 
