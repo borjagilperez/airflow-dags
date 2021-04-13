@@ -1,0 +1,7 @@
+{
+    "send_email": {
+        "EMAIL_TO": [""],
+        "EMAIL_CC": null,
+        "EMAIL_BCC": null
+    }
+}
