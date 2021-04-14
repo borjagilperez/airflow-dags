@@ -5,7 +5,7 @@ options=(
     "Init" \
     "Fetch" \
     "Pull" \
-    "Push" \
+    "Push main, develop, tags" \
     "Start feature" \
     "Finish feature" \
     "Start release/hotfix" \
@@ -39,7 +39,7 @@ select opt in "${options[@]}"; do
             break
             ;;
 
-        "Push")
+        "Push main, develop, tags")
             git config credential.helper cache
             git push origin main
             git push origin --tags
