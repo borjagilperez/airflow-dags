@@ -15,10 +15,10 @@ options=(
 select opt in "${options[@]}"; do
     case $opt in
         "Init")
-            read -p 'Username: ' USER_NAME
-            git config user.name $USER_NAME
-            read -p 'User email: ' USER_EMAIL
-            git config user.email "$USER_EMAIL"
+            read -p 'Username: ' user_name
+            git config user.name $user_name
+            read -p 'User email: ' user_email
+            git config user.email "$user_email"
 
             git flow init
             master_bname=$(cat ./.git/config | grep 'master = ' | awk -F' = ' 'NR==1{print $2}')
