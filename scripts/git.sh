@@ -5,7 +5,7 @@ options=(
     "Init" \
     "Fetch" \
     "Pull" \
-    "Push main, develop, tags" \
+    "Push production and development branches & tags" \
     "Start feature" \
     "Finish feature" \
     "Start release/hotfix" \
@@ -21,7 +21,15 @@ select opt in "${options[@]}"; do
             git config user.email "$USER_EMAIL"
 
             git flow init
+            master_bname=$(cat ./.git/config | grep 'master = ' | awk -F' = ' 'NR==1{print $2}')
+            develop_bname=$(cat ./.git/config | grep 'develop = ' | awk -F' = ' 'NR==1{print $2}')
 
+            git push origin $master_bname
+            git branch -u origin/$master_bname $master_bname
+            git push origin $develop_bname
+            git branch -u origin/$develop_bname $develop_bname
+            git remote set-head origin -a
+            
             break
             ;;
 
@@ -39,11 +47,11 @@ select opt in "${options[@]}"; do
             break
             ;;
 
-        "Push main, develop, tags")
+        "Push production and development branches & tags")
             git config credential.helper cache
-            git push origin main
+            git push origin $(cat ./.git/config | grep 'master = ' | awk -F' = ' 'NR==1{print $2}')
             git push origin --tags
-            git push origin develop
+            git push origin $(cat ./.git/config | grep 'develop = ' | awk -F' = ' 'NR==1{print $2}')
             git remote prune origin
 
             break
@@ -74,9 +82,11 @@ select opt in "${options[@]}"; do
                     case $resp_branch in
                         "")
                             branch='release'
+
                             ;;
                         'release'|'RELEASE'|'hotfix'|'HOTFIX')
                             branch=$resp_branch
+
                             ;;
                         *)
                             echo "Invalid option"
@@ -99,9 +109,11 @@ select opt in "${options[@]}"; do
                     git flow $branch start v$NEW_VERSION
                     bumpversion --current-version $CURR_VERSION $NAME ./VERSION
                     git add --all && git commit -m "$branch $NEW_VERSION"
+
                     ;;
                 'n'|'N'|"")
                     echo 'Commit the changes first.'
+
                     ;;
                 *)
                     echo "Invalid option"
@@ -119,9 +131,11 @@ select opt in "${options[@]}"; do
             case $resp_commit in
                 'y'|'Y')
                     git flow $(git branch | grep '*' | awk -F' |/' 'NR==1{print $2}') finish
+
                     ;;
                 'n'|'N'|"")
                     echo 'Commit the changes first.'
+                    
                     ;;
                 *)
                     echo "Invalid option"
