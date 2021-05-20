@@ -124,13 +124,13 @@ select opt in "${options[@]}"; do
             read -p 'Have you committed the changes? [y/N]: ' resp_commit
             case $resp_commit in
                 'y'|'Y')
-                    read -p 'Start release or hotfix? [RELEASE/hotfix]: ' resp_branch
+                    read -p 'Start release or hotfix? [[release]/hotfix]: ' resp_branch
                     case $resp_branch in
                         "")
                             branch='release'
 
                             ;;
-                        'release'|'RELEASE'|'hotfix'|'HOTFIX')
+                        'release'|'hotfix')
                             branch=$resp_branch
 
                             ;;
