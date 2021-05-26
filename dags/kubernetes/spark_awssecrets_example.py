@@ -67,7 +67,7 @@ with DAG(
         arguments=[f'''
             tmp_dir='/tmp/spark/kubernetes' && mkdir -p $tmp_dir && \\
             export SPARK_HOME=/opt/spark && export PATH=$SPARK_HOME/bin:$PATH && \\
-            launcher=$SPARK_HOME/work-dir/examples/awssecrets.py && \\
+            launcher="$SPARK_HOME/work-dir/examples/awssecrets.py" && \\
             spark-submit \\
                 --name awssecrets-example \\
                 --master k8s://{dag_config_spark['K8S_MASTER']} \\

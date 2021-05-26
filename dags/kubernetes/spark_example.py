@@ -69,7 +69,7 @@ with DAG(
         arguments=[f'''
             tmp_dir='/tmp/spark/kubernetes' && mkdir -p $tmp_dir && \\
             export SPARK_HOME=/opt/spark && export PATH=$SPARK_HOME/bin:$PATH && \\
-            launcher='/opt/spark/examples/jars/spark-examples_2.12-3.1.1.jar' \\
+            launcher='/opt/spark/examples/jars/spark-examples_2.12-3.1.1.jar' && \\
             spark-submit \\
                 --name spark-pi \\
                 --master k8s://{dag_config_spark['K8S_MASTER']} \\
@@ -114,7 +114,7 @@ with DAG(
             pi_roughly={'{{ ti.xcom_pull(task_ids=["spark_pi"], key="return_value")[0] }}'} && echo $pi_roughly && \\
             tmp_dir='/tmp/spark/kubernetes' && mkdir -p $tmp_dir && \\
             export SPARK_HOME=/opt/spark && export PATH=$SPARK_HOME/bin:$PATH && \\
-            launcher=$SPARK_HOME/work-dir/examples/pandasudf.py && \\
+            launcher="$SPARK_HOME/work-dir/examples/pandasudf.py" && \\
             spark-submit \\
                 --name pandasudf-example \\
                 --master k8s://{dag_config_spark['K8S_MASTER']} \\
