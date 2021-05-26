@@ -15,11 +15,10 @@ def _cleaning():
     print("Cleaning from target DAG")
 
 with DAG(
-    "dagofdags_worker",
+    "local_dagofdags_worker",
     schedule_interval='@daily',
     default_args=default_args,
-    catchup=False
-) as dag:
+    catchup=False) as dag:
 
     t1 = BashOperator(
         task_id="storing",

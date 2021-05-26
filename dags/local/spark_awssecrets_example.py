@@ -48,7 +48,7 @@ default_args = {
 }
 
 with DAG(
-    "spark_awssecrets_example",
+    "local_spark_awssecrets_example",
     schedule_interval='@once',
     catchup=False,
     default_args=default_args) as dag:
@@ -58,9 +58,9 @@ with DAG(
     t1 = BashOperator(
         task_id="spark_awssecrets",
         bash_command=f'''
-            TMP_DIR='/tmp/spark/local/spark_awssecrets_example/spark_awssecrets' && mkdir -p $TMP_DIR && \\
-            export SPARK_HOME=$HOME/spark3 && export PATH=$SPARK_HOME/bin:$PATH && \\
-            LAUNCHER=/opt/spark/work-dir/examples/awssecrets.py && \\
+            tmp_dir='/tmp/spark/local/spark_awssecrets_example/spark_awssecrets' && mkdir -p $tmp_dir && \\
+            export SPARK_HOME=$HOME/spark && export PATH=$SPARK_HOME/bin:$PATH && \\
+            launcher='/opt/spark/work-dir/examples/awssecrets.py' && \\
             spark-submit \\
                 --name awssecrets-example \\
                 --master k8s://{dag_config_spark['K8S_MASTER']} \\
@@ -81,9 +81,9 @@ with DAG(
                 --conf spark.executor.instances={dag_config_spark['size_m']['EXECUTOR_INSTANCES']} \\
                 --conf spark.executor.cores={dag_config_spark['size_m']['EXECUTOR_CORES']} \\
                 --conf spark.executor.memory={dag_config_spark['size_m']['EXECUTOR_MEMORY']} \\
-                local://$LAUNCHER \\
-                2>&1 | tee $TMP_DIR/spark-submit-client.log && \\
-            python3 $HOME/Git/bdds-platform/spark-kubernetes/src/main/python/scripts/spark_check_logs.py check $TMP_DIR/spark-submit-client.log
+                local://$launcher \\
+                2>&1 | tee $tmp_dir/spark-submit-client.log && \\
+            python3 $HOME/Git/bdds-platform/spark-docker/src/main/python/scripts/check_logs.py airflow-bashop $tmp_dir/spark-submit-client.log
         '''
     )
 

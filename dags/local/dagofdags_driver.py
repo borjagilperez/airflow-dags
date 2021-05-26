@@ -15,11 +15,10 @@ def _downloading():
     print("downloading")
 
 with DAG(
-    "dagofdags_driver",
+    "local_dagofdags_driver",
     schedule_interval='@daily',
     default_args=default_args,
-    catchup=False
-) as dag:
+    catchup=False) as dag:
 
     t1 = PythonOperator(
         task_id="downloading",
