@@ -87,11 +87,10 @@ with DAG(
         is_delete_operator_pod=True,
         cmds=["/bin/bash", "-c"],
         arguments=[f'''
-            PI_ROUGHLY={'{{ ti.xcom_pull(task_ids=["ubuntu_preproc"], key="return_value")[0] }}'} && \\
-            echo $PI_ROUGHLY && \\
-            TMP_DIR='/tmp/spark/kubernetes' && mkdir -p $TMP_DIR && \\
+            pi_roughly={'{{ ti.xcom_pull(task_ids=["ubuntu_preproc"], key="return_value")[0] }}'} && echo $pi_roughly && \\
+            tmp_dir='/tmp/spark/kubernetes' && mkdir -p $tmp_dir && \\
             export SPARK_HOME=/opt/spark && export PATH=$SPARK_HOME/bin:$PATH && \\
-            LAUNCHER=$SPARK_HOME/work-dir/examples/pandasudf.py && \\
+            launcher=$SPARK_HOME/work-dir/examples/pandasudf.py && \\
             spark-submit \\
                 --name pandasudf-example \\
                 --master k8s://{dag_config_spark['K8S_MASTER']} \\
@@ -106,9 +105,9 @@ with DAG(
                 --conf spark.executor.instances={dag_config_spark['size_m']['EXECUTOR_INSTANCES']} \\
                 --conf spark.executor.cores={dag_config_spark['size_m']['EXECUTOR_CORES']} \\
                 --conf spark.executor.memory={dag_config_spark['size_m']['EXECUTOR_MEMORY']} \\
-                local://$LAUNCHER \\
-                2>&1 | tee $TMP_DIR/spark-submit-client.log && \\
-            python3 $SPARK_HOME/work-dir/scripts/spark_check_logs.py check -k $TMP_DIR/spark-submit-client.log
+                local://$launcher \\
+                2>&1 | tee $tmp_dir/spark-submit-client.log && \\
+            python3 $SPARK_HOME/work-dir/scripts/check_logs.py airflow-k8spodop $tmp_dir/spark-submit-client.log
         ''']
     )
 
