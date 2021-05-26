@@ -55,6 +55,8 @@ with DAG(
     default_args=default_args) as dag:
 
     dag_config_preproc = Variable.get("ubuntu_k8s", deserialize_json=True)
+    dag_config_spark = Variable.get("spark_k8s", deserialize_json=True)
+
     t1 = KubernetesPodOperator(
         task_id="ubuntu_preproc",
         name="ubuntu-preproc",
@@ -76,7 +78,6 @@ with DAG(
         ''']
     )
 
-    dag_config_spark = Variable.get("spark_k8s", deserialize_json=True)
     t2 = KubernetesPodOperator(
         task_id="spark_pandasudf",
         name="spark-pandasudf",
@@ -87,7 +88,7 @@ with DAG(
         is_delete_operator_pod=True,
         cmds=["/bin/bash", "-c"],
         arguments=[f'''
-            pi_roughly={'{{ ti.xcom_pull(task_ids=["ubuntu_preproc"], key="return_value")[0] }}'} && echo $pi_roughly && \\
+            xcom_return={'{{ ti.xcom_pull(task_ids=["ubuntu_preproc"], key="return_value")[0] }}'} && echo $xcom_return && \\
             tmp_dir='/tmp/spark/kubernetes' && mkdir -p $tmp_dir && \\
             export SPARK_HOME=/opt/spark && export PATH=$SPARK_HOME/bin:$PATH && \\
             launcher="$SPARK_HOME/work-dir/examples/pandasudf.py" && \\

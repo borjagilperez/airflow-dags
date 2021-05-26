@@ -6,13 +6,13 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
-default_args = {
-    'start_date': datetime(2021, 1, 1)
-}
-
 def _downloading():
 
     print("downloading")
+
+default_args = {
+    'start_date': datetime(2021, 1, 1)
+}
 
 with DAG(
     "local_dagofdags_driver",

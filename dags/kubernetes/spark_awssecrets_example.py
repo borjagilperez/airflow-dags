@@ -53,8 +53,8 @@ with DAG(
     catchup=False,
     default_args=default_args) as dag:
 
-
     dag_config_spark = Variable.get("spark_k8s", deserialize_json=True)
+
     t1 = KubernetesPodOperator(
         task_id="spark_awssecrets",
         name="spark-awssecrets",

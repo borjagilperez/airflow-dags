@@ -6,13 +6,13 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 
-default_args = {
-    'start_date': datetime(2021, 1, 1)
-}
-
 def _cleaning():
 
     print("Cleaning from target DAG")
+
+default_args = {
+    'start_date': datetime(2021, 1, 1)
+}
 
 with DAG(
     "local_dagofdags_worker",
