@@ -96,7 +96,7 @@ with DAG(
             xcom_return={'{{ ti.xcom_pull(task_ids=["python_preproc"], key="return_value")[0] }}'} && echo $xcom_return && \\
             echo "My Airflow fernet key: $MY_AIRFLOW_FERNET_KEY" && \\
             eval "$($HOME/miniconda/bin/conda shell.bash hook)" && \\
-            conda info --envs && \\
+            conda activate my_env && conda info --envs && \\
             python3 $HOME/examples/src/main/python/preproc.py bucket staging/preproc
         ''']
     )
