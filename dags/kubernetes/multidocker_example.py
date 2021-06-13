@@ -49,17 +49,20 @@ default_args = {
 }
 
 with DAG(
-    "ak8s_ubuntu_example",
+    "ak8s_multidocker_example",
     schedule_interval='@once',
     catchup=False,
     default_args=default_args) as dag:
 
-    dag_config_preproc = Variable.get("ubuntu_k8s", deserialize_json=True)
+    dag_config_python = Variable.get("python_k8s", deserialize_json=True)
+    dag_config_spark = Variable.get("spark_k8s", deserialize_json=True)
+    dag_config_ubuntu = Variable.get("ubuntu_k8s", deserialize_json=True)
+
     t1 = KubernetesPodOperator(
-        task_id="ubuntu_preproc",
-        name="ubuntu-preproc",
+        task_id="python_preproc",
+        name="python-preproc",
         namespace='airflow',
-        image=dag_config_preproc['UBUNTU_DOCKER_IMG'],
+        image=dag_config_python['PYTHON_DOCKER_IMG'],
         image_pull_policy='Always',
         get_logs=True,
         is_delete_operator_pod=True,
@@ -70,14 +73,35 @@ with DAG(
         cmds=["/bin/bash", "-c"],
         arguments=[f'''
             echo "My Airflow fernet key: $MY_AIRFLOW_FERNET_KEY" && \\
-            eval "$($HOME/miniconda/bin/conda shell.bash hook)" && \\
-            conda info --envs && \\
+            eval "$(/opt/conda/bin/conda shell.bash hook)" && \\
+            conda activate my_env && conda info --envs && \\
             python3 $HOME/examples/src/main/python/preproc.py bucket staging/preproc
         ''']
     )
 
-    dag_config_spark = Variable.get("spark_k8s", deserialize_json=True)
     t2 = KubernetesPodOperator(
+        task_id="ubuntu_preproc",
+        name="ubuntu-preproc",
+        namespace='airflow',
+        image=dag_config_ubuntu['UBUNTU_DOCKER_IMG'],
+        image_pull_policy='Always',
+        get_logs=True,
+        is_delete_operator_pod=True,
+        do_xcom_push=True,
+        secrets=[
+            Secret(deploy_type='env', deploy_target='MY_AIRFLOW_FERNET_KEY', secret='airflow-fernet-key', key='value')
+        ],
+        cmds=["/bin/bash", "-c"],
+        arguments=[f'''
+            xcom_return={'{{ ti.xcom_pull(task_ids=["python_preproc"], key="return_value")[0] }}'} && echo $xcom_return && \\
+            echo "My Airflow fernet key: $MY_AIRFLOW_FERNET_KEY" && \\
+            eval "$($HOME/miniconda/bin/conda shell.bash hook)" && \\
+            conda activate my_env && conda info --envs && \\
+            python3 $HOME/examples/src/main/python/preproc.py bucket staging/preproc
+        ''']
+    )
+
+    t3 = KubernetesPodOperator(
         task_id="spark_pandasudf",
         name="spark-pandasudf",
         namespace='airflow',
@@ -87,11 +111,10 @@ with DAG(
         is_delete_operator_pod=True,
         cmds=["/bin/bash", "-c"],
         arguments=[f'''
-            PI_ROUGHLY={'{{ ti.xcom_pull(task_ids=["ubuntu_preproc"], key="return_value")[0] }}'} && \\
-            echo $PI_ROUGHLY && \\
-            TMP_DIR='/tmp/spark/kubernetes' && mkdir -p $TMP_DIR && \\
+            xcom_return={'{{ ti.xcom_pull(task_ids=["ubuntu_preproc"], key="return_value")[0] }}'} && echo $xcom_return && \\
+            tmp_dir='/tmp/spark/kubernetes' && mkdir -p $tmp_dir && \\
             export SPARK_HOME=/opt/spark && export PATH=$SPARK_HOME/bin:$PATH && \\
-            LAUNCHER=$SPARK_HOME/work-dir/examples/pandasudf.py && \\
+            launcher="$SPARK_HOME/work-dir/examples/pandasudf.py" && \\
             spark-submit \\
                 --name pandasudf-example \\
                 --master k8s://{dag_config_spark['K8S_MASTER']} \\
@@ -106,9 +129,9 @@ with DAG(
                 --conf spark.executor.instances={dag_config_spark['size_m']['EXECUTOR_INSTANCES']} \\
                 --conf spark.executor.cores={dag_config_spark['size_m']['EXECUTOR_CORES']} \\
                 --conf spark.executor.memory={dag_config_spark['size_m']['EXECUTOR_MEMORY']} \\
-                local://$LAUNCHER \\
-                2>&1 | tee $TMP_DIR/spark-submit-client.log && \\
-            python3 $SPARK_HOME/work-dir/scripts/spark_check_logs.py check -k $TMP_DIR/spark-submit-client.log
+                local://$launcher \\
+                2>&1 | tee $tmp_dir/spark-submit-client.log && \\
+            python3 $SPARK_HOME/work-dir/scripts/check_logs.py airflow-k8spodop $tmp_dir/spark-submit-client.log
         ''']
     )
 
@@ -117,4 +140,4 @@ with DAG(
         on_success_callback=__email_success_callback
     )
 
-    t1 >> t2 >> t_email
+    t1 >> t2 >> t3 >> t_email

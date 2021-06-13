@@ -6,20 +6,19 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
-default_args = {
-    'start_date': datetime(2021, 1, 1)
-}
-
 def _downloading():
 
     print("downloading")
+
+default_args = {
+    'start_date': datetime(2021, 1, 1)
+}
 
 with DAG(
     "ak8s_dagofdags_driver",
     schedule_interval='@daily',
     default_args=default_args,
-    catchup=False
-) as dag:
+    catchup=False) as dag:
 
     t1 = PythonOperator(
         task_id="downloading",

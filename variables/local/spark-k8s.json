@@ -1,7 +1,7 @@
 {
     "spark_k8s": {
         "K8S_MASTER": "<K8S_MASTER>",
-        "SPARK_DOCKER_IMG": "borjagilperez/spark-py:v3.1.1-develop",
+        "SPARK_DOCKER_IMG": "borjagilperez/spark-py:<TAG>",
         "size_s": {
             "DRIVER_CORES": "1",
             "DRIVER_MEMORY": "1g",
@@ -17,11 +17,11 @@
             "EXECUTOR_MEMORY": "4g"
         },
         "size_l": {
-            "DRIVER_CORES": "<DRIVER_CORES>",
-            "DRIVER_MEMORY": "<DRIVER_MEMORY>",
-            "EXECUTOR_INSTANCES": "<EXECUTOR_INSTANCES>",
-            "EXECUTOR_CORES": "<EXECUTOR_CORES>",
-            "EXECUTOR_MEMORY": "<EXECUTOR_MEMORY>"
+            "DRIVER_CORES": "",
+            "DRIVER_MEMORY": "",
+            "EXECUTOR_INSTANCES": "",
+            "EXECUTOR_CORES": "",
+            "EXECUTOR_MEMORY": ""
         }
     }
 }
